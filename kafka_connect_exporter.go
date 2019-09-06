@@ -31,9 +31,33 @@ var (
 		prometheus.BuildFQName(nameSpace, "connector", "state_running"),
 		"is the connector running?",
 		[]string{"connector", "state", "worker"}, nil)
+	isConnecttorFailed = prometheus.NewDesc(
+		prometheus.BuildFQName(nameSpace, "connector", "state_failed"),
+		"is the connector failed?",
+		[]string{"connector", "state", "worker"}, nil)
+	isConnecttorPaused = prometheus.NewDesc(
+		prometheus.BuildFQName(nameSpace, "connector", "state_paused"),
+		"is the connector paused?",
+		[]string{"connector", "state", "worker"}, nil)
+	isConnectorUnassingned = prometheus.NewDesc(
+		prometheus.BuildFQName(nameSpace, "conncetor", "state_unassingned"),
+		"is the connector unassingned?",
+		[]string{"connector", "state", "worker"}, nil)
 	areConnectorTasksRunning = prometheus.NewDesc(
 		prometheus.BuildFQName(nameSpace, "connector", "tasks_state_running"),
 		"are connector tasks running?",
+		[]string{"connector", "state", "worker_id", "id"}, nil)
+	areConnectorTasksFailed = prometheus.NewDesc(
+		prometheus.BuildFQName(nameSpace, "connector", "tasks_state_failed"),
+		"are connector tasks failed?",
+		[]string{"connector", "state", "worker_id", "id"}, nil)
+	areConnectorTasksPaused = prometheus.NewDesc(
+		prometheus.BuildFQName(nameSpace, "connector", "tasks_state_paused"),
+		"are connector tasks paused?",
+		[]string{"connector", "state", "worker_id", "id"}, nil)
+	areConnectorTasksUnassingned = prometheus.NewDesc(
+		prometheus.BuildFQName(nameSpace, "connector", "tasks_state_unassingned"),
+		"are connector tasks unassingned?",
 		[]string{"connector", "state", "worker_id", "id"}, nil)
 )
 
@@ -134,6 +158,34 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 			connectorStatus.Name, strings.ToLower(connectorStatus.Connector.State), connectorStatus.Connector.WorkerId,
 		)
 
+		var isFaild float64 = 0
+		if strings.ToLower(connectorStatus.Connector.State) == "failed" {
+			isFaild = 1
+		}
+
+		ch <- prometheus.MustNewConstMetric(
+			isConnecttorFailed, prometheus.GaugeValue, isFaild,
+			connectorStatus.Name, strings.ToLower(connectorStatus.Connector.State), connectorStatus.Connector.WorkerId,
+		)
+
+		var isPaused float64 = 0
+		if strings.ToLower(connectorStatus.Connector.State) == "paused" {
+			isPaused = 1
+		}
+		ch <- prometheus.MustNewConstMetric(
+			isConnecttorPaused, prometheus.GaugeValue, isPaused,
+			connectorStatus.Name, strings.ToLower(connectorStatus.Connector.State), connectorStatus.Connector.WorkerId,
+		)
+
+		var isUnassingned float64 = 0
+		if strings.ToLower(connectorStatus.Connector.State) == "unassingned" {
+			isUnassingned = 1
+		}
+		ch <- prometheus.MustNewConstMetric(
+			isConnectorUnassingned, prometheus.GaugeValue, isUnassingned,
+			connectorStatus.Name, strings.ToLower(connectorStatus.Connector.State), connectorStatus.Connector.WorkerId,
+		)
+
 		for _, connectorTask := range connectorStatus.Tasks {
 
 			var isTaskRunning float64 = 0
@@ -143,6 +195,33 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 
 			ch <- prometheus.MustNewConstMetric(
 				areConnectorTasksRunning, prometheus.GaugeValue, isTaskRunning,
+				connectorStatus.Name, strings.ToLower(connectorTask.State), connectorTask.WorkerId, fmt.Sprintf("%d", int(connectorTask.Id)),
+			)
+
+			var isTaskFailed float64 = 0
+			if strings.ToLower(connectorTask.State) == "failed" {
+				isTaskFailed = 1
+			}
+			ch <- prometheus.MustNewConstMetric(
+				areConnectorTasksFailed, prometheus.GaugeValue, isTaskFailed,
+				connectorStatus.Name, strings.ToLower(connectorTask.State), connectorTask.WorkerId, fmt.Sprintf("%d", int(connectorTask.Id)),
+			)
+
+			var isTaskPaused float64 = 0
+			if strings.ToLower(connectorTask.State) == "paused" {
+				isTaskPaused = 1
+			}
+			ch <- prometheus.MustNewConstMetric(
+				areConnectorTasksPaused, prometheus.GaugeValue, isTaskPaused,
+				connectorStatus.Name, strings.ToLower(connectorTask.State), connectorTask.WorkerId, fmt.Sprintf("%d", int(connectorTask.Id)),
+			)
+
+			var isTaskUnassingned float64 = 0
+			if strings.ToLower(connectorTask.State) == "unassingned" {
+				isTaskUnassingned = 1
+			}
+			ch <- prometheus.MustNewConstMetric(
+				areConnectorTasksUnassingned, prometheus.GaugeValue, isTaskUnassingned,
 				connectorStatus.Name, strings.ToLower(connectorTask.State), connectorTask.WorkerId, fmt.Sprintf("%d", int(connectorTask.Id)),
 			)
 		}
