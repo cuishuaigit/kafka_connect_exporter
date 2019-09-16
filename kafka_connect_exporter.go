@@ -19,13 +19,18 @@ import (
 const nameSpace = "kafka_connect"
 
 var (
-	version    = "dev"
-	versionUrl = "https://github.com/wakeful/kafka_connect_exporter"
-
+	version       = "dev"
+	versionUrl    = "https://github.com/wakeful/kafka_connect_exporter"
+	pod           = os.Getenv("POD_NAME")
+	svc           = os.Getenv("SVC")
+	domain        = os.Getenv("DOMAIN")
+	schema        = os.Getenv("SCHEMA")
+	data          = []string{pod, svc, domain}
+	couri         = schema + strings.Join(data, ".")
 	showVersion   = flag.Bool("version", false, "show version and exit")
 	listenAddress = flag.String("listen-address", ":8080", "Address on which to expose metrics.")
 	metricsPath   = flag.String("telemetry-path", "/metrics", "Path under which to expose metrics.")
-	scrapeURI     = flag.String("scrape-uri", "http://127.0.0.1:8080", "URI on which to scrape kafka connect.")
+	scrapeURI     = flag.String("scrape-uri", couri, "URI on which to scrape kafka connect.")
 
 	isConnectorRunning = prometheus.NewDesc(
 		prometheus.BuildFQName(nameSpace, "connector", "state_running"),
