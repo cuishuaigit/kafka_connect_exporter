@@ -10,7 +10,7 @@ Usage of ./kafka_connect_exporter:
   -listen-address string
         Address on which to expose metrics. (default ":8080")
   -scrape-uri string
-        URI on which to scrape kafka connect. (default "http://127.0.0.1:8080")
+        URI on which to scrape kafka connect. (default "..")
   -telemetry-path string
         Path under which to expose metrics. (default "/metrics")
   -version
